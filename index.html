@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Invasion - FPS Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #1a1a3e 0%, #0a0a0a 100%);
+            cursor: crosshair;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff00;
+            font-size: 18px;
+            font-family: monospace;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 100;
+        }
+
+        #score {
+            margin-bottom: 10px;
+        }
+
+        #ammo {
+            margin-bottom: 10px;
+        }
+
+        #health {
+            margin-bottom: 10px;
+        }
+
+        #missionStatus {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ff00;
+            font-size: 16px;
+            font-family: monospace;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 100;
+        }
+
+        #changeDifficultyBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff6600;
+            color: #ff6600;
+            font-family: monospace;
+            cursor: pointer;
+            font-size: 12px;
+            text-shadow: 0 0 10px #ff6600;
+            z-index: 100;
+            display: none;
+        }
+
+        #changeDifficultyBtn:hover {
+            background: rgba(255, 102, 0, 0.2);
+            box-shadow: 0 0 15px #ff6600;
+        }
+
+        #aimbotBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            font-family: monospace;
+            cursor: pointer;
+            font-size: 12px;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 100;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        #aimbotBtn:hover {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        #aimbotBtn.active {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 20px #00ff00, inset 0 0 10px #00ff00;
+            border-color: #00ff00;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            padding: 40px;
+            text-align: center;
+            border: 3px solid #00ff00;
+            font-size: 24px;
+            display: none;
+            z-index: 200;
+        }
+
+        #gameOver h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00ff00;
+        }
+
+        #gameOver p {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        #restartBtn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #restartBtn:hover {
+            background: #00cc00;
+        }
+
+        #difficultyScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+
+        #difficultyPanel {
+            text-align: center;
+            color: #00ff99;
+            font-family: monospace;
+        }
+
+        #difficultyPanel h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #00ff99;
+        }
+
+        .difficultyButton {
+            display: inline-block;
+            margin: 15px;
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: monospace;
+            border: 3px solid #00ff99;
+            background: rgba(0, 255, 153, 0.1);
+            color: #00ff99;
+            cursor: pointer;
+            text-shadow: 0 0 10px #00ff99;
+            transition: all 0.3s;
+        }
+
+        .difficultyButton:hover {
+            background: rgba(0, 255, 153, 0.3);
+            box-shadow: 0 0 20px #00ff99;
+            transform: scale(1.05);
+        }
+
+        #easyBtn {
+            border-color: #00ff00;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        #easyBtn:hover {
+            box-shadow: 0 0 20px #00ff00;
+        }
+
+        #normalBtn {
+            border-color: #ffff00;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        #normalBtn:hover {
+            box-shadow: 0 0 20px #ffff00;
+        }
+
+        #hardBtn {
+            border-color: #ff0000;
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        #hardBtn:hover {
+            box-shadow: 0 0 20px #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Difficulty Selection Screen -->
+    <div id="difficultyScreen">
+        <div id="difficultyPanel">
+            <h1>SELECT DIFFICULTY</h1>
+            <button class="difficultyButton" id="easyBtn">EASY</button>
+            <button class="difficultyButton" id="normalBtn">NORMAL</button>
+            <button class="difficultyButton" id="hardBtn">HARD</button>
+        </div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD Display -->
+    <div id="hud">
+        <div id="score">Humans Eliminated: 0</div>
+        <div id="ammo">Click to kill enemies</div>
+        <div id="health">Shield: 100%</div>
+    </div>
+
+    <!-- Mission Status -->
+    <div id="missionStatus">
+        Mission: INVASION PROTOCOL ALPHA
+    </div>
+
+    <!-- Change Difficulty Button -->
+    <button id="changeDifficultyBtn">CHANGE DIFFICULTY</button>
+
+    <!-- Aimbot Toggle Button -->
+    <button id="aimbotBtn">AIMBOT: OFF</button>
+
+    <!-- Game Over Screen -->
+    <div id="gameOver">
+        <h1>MISSION FAILED</h1>
+        <p id="finalScore">Humans Eliminated: 0</p>
+        <p id="enemiesKilled">Defenders Destroyed: 0</p>
+        <button id="restartBtn">Restart Invasion</button>
+    </div>
+
+    <script>
+        // Get canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Game variables
+        let score = 0;
+        let health = 200;
+        let maxHealth = 200;
+        let enemiesKilled = 0;
+        let gameActive = false;
+        let difficulty = 'normal';
+        let difficultyMultiplier = 1;
+        let aimbotEnabled = false;
+
+        const difficultySettings = {
+            easy: { speed: 0.5, spawnRate: 0.01 },
+            normal: { speed: 1, spawnRate: 0.02 },
+            hard: { speed: 1.5, spawnRate: 0.03 }
+        };
+
+        // Player
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 10,
+            angle: 0
+        };
+
+        let enemies = [];
+        let healthBoxes = [];
+
+        // Difficulty selection
+        document.getElementById('easyBtn').addEventListener('click', () => {
+            difficulty = 'easy';
+            difficultyMultiplier = difficultySettings.easy.speed;
+            aimbotEnabled = false;
+            document.getElementById('aimbotBtn').textContent = 'AIMBOT: OFF';
+            document.getElementById('aimbotBtn').classList.remove('active');
+            document.getElementById('difficultyScreen').style.display = 'none';
+            gameActive = true;
+            gameLoop();
+        });
+
+        document.getElementById('normalBtn').addEventListener('click', () => {
+            difficulty = 'normal';
+            difficultyMultiplier = difficultySettings.normal.speed;
+            aimbotEnabled = false;
+            document.getElementById('aimbotBtn').textContent = 'AIMBOT: OFF';
+            document.getElementById('aimbotBtn').classList.remove('active');
+            document.getElementById('difficultyScreen').style.display = 'none';
+            gameActive = true;
+            gameLoop();
+        });
+
+        document.getElementById('hardBtn').addEventListener('click', () => {
+            difficulty = 'hard';
+            difficultyMultiplier = difficultySettings.hard.speed;
+            aimbotEnabled = false;
+            document.getElementById('aimbotBtn').textContent = 'AIMBOT: OFF';
+            document.getElementById('aimbotBtn').classList.remove('active');
+            document.getElementById('difficultyScreen').style.display = 'none';
+            gameActive = true;
+            gameLoop();
+        });
+
+        // Change difficulty button during gameplay
+        document.getElementById('changeDifficultyBtn').addEventListener('click', () => {
+            gameActive = false;
+            score = 0;
+            health = maxHealth;
+            enemiesKilled = 0;
+            enemies = [];
+            healthBoxes = [];
+            
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('difficultyScreen').style.display = 'flex';
+        });
+
+        // Aimbot toggle button
+        document.getElementById('aimbotBtn').addEventListener('click', () => {
+            aimbotEnabled = !aimbotEnabled;
+            const btn = document.getElementById('aimbotBtn');
+            if (aimbotEnabled) {
+                btn.textContent = 'AIMBOT: ON';
+                btn.classList.add('active');
+            } else {
+                btn.textContent = 'AIMBOT: OFF';
+                btn.classList.remove('active');
+            }
+        });
+
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Mouse click to shoot - click on enemies directly
+        canvas.addEventListener('click', (e) => {
+            if (!gameActive) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Check if clicked on health box
+            for (let i = healthBoxes.length - 1; i >= 0; i--) {
+                if (healthBoxes[i].collidesWith(mouseX, mouseY, 10)) {
+                    health = Math.min(maxHealth, health + healthBoxes[i].healAmount);
+                    healthBoxes.splice(i, 1);
+                    return;
+                }
+            }
+
+            // Check if clicked on any enemy
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const dist = Math.sqrt((enemies[i].x - mouseX) ** 2 + (enemies[i].y - mouseY) ** 2);
+                if (dist < enemies[i].radius + 10) {
+                    // One-shot kill
+                    enemies.splice(i, 1);
+                    enemiesKilled++;
+                    score += 100;
+                    break;
+                }
+            }
+        });
+
+        // Mouse move for aiming
+        canvas.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+        });
+
+        // Enemy class
+        class Enemy {
+            constructor() {
+                const side = Math.random();
+                if (side < 0.25) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = -30;
+                } else if (side < 0.5) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height + 30;
+                } else if (side < 0.75) {
+                    this.x = -30;
+                    this.y = Math.random() * canvas.height;
+                } else {
+                    this.x = canvas.width + 30;
+                    this.y = Math.random() * canvas.height;
+                }
+                this.radius = 15;
+                this.speed = (2 + Math.random() * 2) * difficultyMultiplier;
+                this.health = 1;
+                this.maxHealth = 1;
+            }
+
+            update() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 0) {
+                    this.x += (dx / distance) * this.speed;
+                    this.y += (dy / distance) * this.speed;
+                }
+                const playerDist = Math.sqrt((this.x - player.x) ** 2 + (this.y - player.y) ** 2);
+                if (playerDist < this.radius + player.radius) {
+                    health -= 5;
+                }
+            }
+
+            draw() {
+                // Draw enemy body
+                ctx.fillStyle = '#0099ff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#00ccff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw health bar above enemy
+                const barWidth = 40;
+                const barHeight = 5;
+                const barX = this.x - barWidth / 2;
+                const barY = this.y - this.radius - 15;
+
+                // Background (dark red)
+                ctx.fillStyle = '#330000';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                // Health fill (green)
+                ctx.fillStyle = '#00ff00';
+                const healthPercent = this.health / this.maxHealth;
+                ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+
+                // Health bar border
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(barX, barY, barWidth, barHeight);
+            }
+        }
+
+        // Health Box class
+        class HealthBox {
+            constructor() {
+                this.x = Math.random() * (canvas.width - 100) + 50;
+                this.y = Math.random() * (canvas.height - 100) + 50;
+                this.size = 20;
+                this.healAmount = 50;
+            }
+
+            draw() {
+                // Draw green health box
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+
+                // Border
+                ctx.strokeStyle = '#00cc00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+
+                // Cross symbol
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - this.size / 4);
+                ctx.lineTo(this.x, this.y + this.size / 4);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.size / 4, this.y);
+                ctx.lineTo(this.x + this.size / 4, this.y);
+                ctx.stroke();
+            }
+
+            collidesWith(x, y, radius) {
+                const dist = Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
+                return dist < this.size + radius;
+            }
+        }
+
+        // Spawn enemy
+        function spawnEnemy() {
+            enemies.push(new Enemy());
+        }
+
+        // Spawn health box
+        function spawnHealthBox() {
+            healthBoxes.push(new HealthBox());
+        }
+
+        // Update HUD
+        function updateHUD() {
+            document.getElementById('score').textContent = `Humans Eliminated: ${score}`;
+            document.getElementById('ammo').textContent = `Difficulty: ${difficulty.toUpperCase()} | Enemies: ${enemies.length}`;
+            const healthPercent = Math.max(0, Math.round((health / maxHealth) * 100));
+            document.getElementById('health').textContent = `Shield: ${healthPercent}%`;
+        }
+
+        // Game loop
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update player movement
+            if (keys['w'] || keys['arrowup']) player.y -= 5;
+            if (keys['s'] || keys['arrowdown']) player.y += 5;
+            if (keys['a'] || keys['arrowleft']) player.x -= 5;
+            if (keys['d'] || keys['arrowright']) player.x += 5;
+
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+            // Aimbot logic - auto-aim at nearest enemy
+            if (aimbotEnabled && enemies.length > 0) {
+                let nearestEnemy = null;
+                let nearestDistance = Infinity;
+
+                for (let i = 0; i < enemies.length; i++) {
+                    const dx = enemies[i].x - player.x;
+                    const dy = enemies[i].y - player.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestEnemy = enemies[i];
+                    }
+                }
+
+                if (nearestEnemy) {
+                    player.angle = Math.atan2(nearestEnemy.y - player.y, nearestEnemy.x - player.x);
+                }
+            }
+
+            // Draw health boxes
+            for (let i = 0; i < healthBoxes.length; i++) {
+                healthBoxes[i].draw();
+            }
+
+            // Update and draw enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].update();
+                enemies[i].draw();
+            }
+
+            // Draw player
+            ctx.fillStyle = '#00ff99';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#00ffcc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw weapon
+            const weaponLength = 30;
+            ctx.strokeStyle = '#ff9900';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y);
+            ctx.lineTo(player.x + Math.cos(player.angle) * weaponLength,
+                       player.y + Math.sin(player.angle) * weaponLength);
+            ctx.stroke();
+
+            // Spawn enemies
+            if (Math.random() < difficultySettings[difficulty].spawnRate && enemies.length < 5 + Math.floor(score / 200)) {
+                spawnEnemy();
+            }
+
+            // Spawn health boxes
+            if (Math.random() < 0.008 && healthBoxes.length < 3) {
+                spawnHealthBox();
+            }
+
+            updateHUD();
+
+            // Show/hide gameplay buttons
+            if (gameActive) {
+                document.getElementById('changeDifficultyBtn').style.display = 'block';
+                document.getElementById('aimbotBtn').style.display = 'block';
+            } else {
+                document.getElementById('changeDifficultyBtn').style.display = 'none';
+                document.getElementById('aimbotBtn').style.display = 'none';
+            }
+
+            if (health <= 0) {
+                gameActive = false;
+                document.getElementById('gameOver').style.display = 'block';
+                document.getElementById('finalScore').textContent = `Humans Eliminated: ${score}`;
+                document.getElementById('enemiesKilled').textContent = `Defenders Destroyed: ${enemiesKilled}`;
+            }
+
+            if (gameActive) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Restart game
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            // Reset game state
+            score = 0;
+            health = maxHealth;
+            enemiesKilled = 0;
+            gameActive = false;
+            enemies = [];
+            healthBoxes = [];
+            
+            // Hide game over and show difficulty screen
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('difficultyScreen').style.display = 'flex';
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Game starts after difficulty selection
+    </script>
+</body>
+</html>
